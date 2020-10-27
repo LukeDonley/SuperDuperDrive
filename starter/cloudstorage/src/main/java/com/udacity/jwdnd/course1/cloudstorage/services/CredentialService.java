@@ -26,6 +26,7 @@ public class CredentialService {
     }
 
     public void updateCredential(Credential credential) {
+        this.encryptPassword(credential);
         this.credentialMapper.update(credential);
     }
 
