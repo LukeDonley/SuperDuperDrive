@@ -13,24 +13,13 @@ import org.springframework.boot.web.server.LocalServerPort;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class CloudStorageApplicationTests {
 
-	private String firstNameTest = "John";
-	private String lastNameTest = "Doe";
-	private String userNameTest = "johndoe";
-	private String passwordTest = "P$a9H31?v";
-
-	private String noteTitleTest = "Note #1";
-	private String noteDescriptionTest = "This Is A Note";
-
-	private String credentialUrlTest = "www.yahoo.com";
-	private String credentialUsernameTest = "user1";
-	private String credentialPasswordTest = "drowssap";
-
 	@LocalServerPort
 	private int port;
-
 	private WebDriver driver;
 	private WebDriverWait wait;
 	private JavascriptExecutor javascriptExecutor;
+	private String userNameTest = "johndoe";
+	private String passwordTest = "P$a9H31?v";
 
 	@BeforeAll
 	static void beforeAll() {
@@ -51,38 +40,6 @@ class CloudStorageApplicationTests {
 		}
 	}
 
-	public void signupUser(String firstName, String lastName, String userName, String password) {
-		driver.get("http://localhost:" + this.port + "/signup");
-		WebElement inputFirstName = driver.findElement(By.id("inputFirstName"));
-		inputFirstName.sendKeys(firstName);
-		WebElement inputLastName = driver.findElement(By.id("inputLastName"));
-		inputLastName.sendKeys(lastName);
-		WebElement inputUsername = driver.findElement(By.id("inputUsername"));
-		inputUsername.sendKeys(userName);
-		WebElement inputPassword = driver.findElement(By.id("inputPassword"));
-		inputPassword.sendKeys(password);
-		WebElement signUpButton = driver.findElement(By.id("signup"));
-		signUpButton.click();
-	}
-
-	public void login(String userName, String password) {
-		driver.get("http://localhost:" + this.port + "/login");
-		WebElement usernameInput = driver.findElement(By.id("inputUsername"));
-		usernameInput.sendKeys(userName);
-		WebElement passwordInput = driver.findElement(By.id("inputPassword"));
-		passwordInput.sendKeys(password);
-		WebElement loginButton = driver.findElement(By.id("submit-button"));
-		loginButton.click();
-		wait.until(ExpectedConditions.titleContains("Home"));
-	}
-
-	public void logout() {
-		WebElement logoutButton = driver.findElement(By.id("logout"));
-		logoutButton.click();
-		wait.until(ExpectedConditions.titleContains("Login"));
-		Assertions.assertEquals("Login", driver.getTitle());
-	}
-
 	@Test
 	@Order(1)
 	public void getLoginPage() {
@@ -100,7 +57,6 @@ class CloudStorageApplicationTests {
 	@Test
 	@Order(3)
 	public void getHomePageNotAuthorized() {
-		// Verify Home Page Is Not Accessible Without Logging In
 		driver.get("http://localhost:" + this.port + "/home");
 		Assertions.assertEquals("Login", driver.getTitle());
 	}
@@ -109,7 +65,7 @@ class CloudStorageApplicationTests {
 	@Order(4)
 	public void getHomePage() {
 		// Verify Home Page Is Accessible After Signup And Login
-		signupUser(firstNameTest, lastNameTest, userNameTest, passwordTest);
+		signupUser("John", "Doe", userNameTest, passwordTest);
 		login(userNameTest, passwordTest);
 		driver.get("http://localhost:" + this.port + "/home");
 		Assertions.assertEquals("Home", driver.getTitle());
@@ -126,14 +82,16 @@ class CloudStorageApplicationTests {
 		navigateToTab("nav-notes-tab");
 		handleCRUD("create", "Note", "userTable");
 
-		fillAndSubmitNoteForm(noteTitleTest, noteDescriptionTest);
+		fillAndSubmitForm(
+				new String[]{"note-title", "note-description"},
+				new String[]{"Note #1", "This Is A Note"}, "Note");
 
 		navigateHomeFromResult();
 		navigateToTab("nav-notes-tab");
 
 		Assertions.assertDoesNotThrow(() -> {
-			driver.findElement(By.xpath("//th[text()='" + noteTitleTest + "']"));
-			driver.findElement(By.xpath("//td[text()='" + noteDescriptionTest + "']"));
+			driver.findElement(By.xpath("//th[text()='Note #1']"));
+			driver.findElement(By.xpath("//td[text()='This Is A Note']"));
 		});
 
 		logout();
@@ -146,7 +104,9 @@ class CloudStorageApplicationTests {
 		navigateToTab("nav-notes-tab");
 		handleCRUD("edit", "Note", "userTable");
 
-		fillAndSubmitNoteForm("New Note Title", "This Is The Updated Note");
+		fillAndSubmitForm(
+				new String[]{"note-title", "note-description"},
+				new String[]{"New Note Title", "This Is The Updated Note"}, "Note");
 
 		navigateHomeFromResult();
 		navigateToTab("nav-notes-tab");
@@ -184,14 +144,16 @@ class CloudStorageApplicationTests {
 		navigateToTab("nav-credentials-tab");
 		handleCRUD("create", "Credential", "credentialTable");
 
-		fillAndSubmitCredentialForm(credentialUrlTest, credentialUsernameTest, credentialPasswordTest);
+		fillAndSubmitForm(
+				new String[]{"credential-url", "credential-username", "credential-password"},
+				new String[]{"www.yahoo.com", "user1", "drowssap"}, "Credential");
 
 		navigateHomeFromResult();
 		navigateToTab("nav-credentials-tab");
 
 		Assertions.assertDoesNotThrow(() -> {
-			driver.findElement(By.xpath("//th[text()='" + credentialUrlTest + "']"));
-			driver.findElement(By.xpath("//td[text()='" + credentialUsernameTest + "']"));
+			driver.findElement(By.xpath("//th[text()='www.yahoo.com']"));
+			driver.findElement(By.xpath("//td[text()='user1']"));
 		});
 
 		logout();
@@ -204,7 +166,9 @@ class CloudStorageApplicationTests {
 		navigateToTab("nav-credentials-tab");
 		handleCRUD("edit", "Credential", "credentialTable");
 
-		fillAndSubmitCredentialForm("www.google.com", "differentusername", "12345");
+		fillAndSubmitForm(
+				new String[]{"credential-url", "credential-username", "credential-password"},
+				new String[]{"www.google.com", "differentusername", "12345"}, "Credential");
 
 		navigateHomeFromResult();
 		navigateToTab("nav-credentials-tab");
@@ -235,27 +199,42 @@ class CloudStorageApplicationTests {
 		logout();
 	}
 
+	public void signupUser(String firstName, String lastName, String userName, String password) {
+		driver.get("http://localhost:" + this.port + "/signup");
+		WebElement inputFirstName = driver.findElement(By.id("inputFirstName"));
+		inputFirstName.sendKeys(firstName);
+		WebElement inputLastName = driver.findElement(By.id("inputLastName"));
+		inputLastName.sendKeys(lastName);
+		WebElement inputUsername = driver.findElement(By.id("inputUsername"));
+		inputUsername.sendKeys(userName);
+		WebElement inputPassword = driver.findElement(By.id("inputPassword"));
+		inputPassword.sendKeys(password);
+		WebElement signUpButton = driver.findElement(By.id("signup"));
+		signUpButton.click();
+	}
+
+	public void login(String userName, String password) {
+		driver.get("http://localhost:" + this.port + "/login");
+		WebElement usernameInput = driver.findElement(By.id("inputUsername"));
+		usernameInput.sendKeys(userName);
+		WebElement passwordInput = driver.findElement(By.id("inputPassword"));
+		passwordInput.sendKeys(password);
+		WebElement loginButton = driver.findElement(By.id("submit-button"));
+		loginButton.click();
+		wait.until(ExpectedConditions.titleContains("Home"));
+	}
+
+	public void logout() {
+		WebElement logoutButton = driver.findElement(By.id("logout"));
+		logoutButton.click();
+		wait.until(ExpectedConditions.titleContains("Login"));
+		Assertions.assertEquals("Login", driver.getTitle());
+	}
+
 	private void navigateToTab(String tabName) {
 		WebElement tab = driver.findElement(By.id(tabName));
 		javascriptExecutor.executeScript("arguments[0].click()", tab);
 	}
-
-//	private void handleNote(String crudType) {
-//		if (crudType == "create") {
-//			WebElement newNote = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("newNote")));
-//			newNote.click();
-//		}
-//		else if (crudType == "edit") {
-//			WebElement editNote = driver.findElement(By.xpath("//*[@id='userTable']/tbody/tr/td[1]/button"));
-//			wait.until(ExpectedConditions.elementToBeClickable(editNote));
-//			editNote.click();
-//		} else if (crudType == "delete") {
-//			WebElement deleteBtn = driver.findElement(
-//					By.xpath("//*[@id=\"userTable\"]/tbody/tr/td[1]/a"));
-//			wait.until(ExpectedConditions.elementToBeClickable(deleteBtn));
-//			deleteBtn.click();
-//		}
-//	}
 
 	private void handleCRUD(String crudType, String objectType, String tableName) {
 		if (crudType == "create") {
@@ -279,30 +258,14 @@ class CloudStorageApplicationTests {
 		driver.get("http://localhost:" + this.port + "/home");
 	}
 
-	private void fillAndSubmitNoteForm(String noteTitle, String noteDescription) {
-		WebElement noteTitleField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("note-title")));
-		noteTitleField.clear();
-		noteTitleField.sendKeys(noteTitle);
-		WebElement noteDescriptionField  = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("note-description")));
-		noteDescriptionField.clear();
-		noteDescriptionField.sendKeys(noteDescription);
-		WebElement submitNote = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("saveNote")));
-		submitNote.click();
-	}
-
-	private void fillAndSubmitCredentialForm(String url, String username, String password) {
-		WebElement urlField = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-url")));
-		urlField.clear();
-		urlField.sendKeys(url);
-		WebElement usernameField  = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-username")));
-		usernameField.clear();
-		usernameField.sendKeys(username);
-		WebElement passwordField  = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("credential-password")));
-		passwordField.clear();
-		passwordField.sendKeys(password);
-
-		WebElement submitCredential = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("saveCredential")));
-		submitCredential.click();
+	private void fillAndSubmitForm(String elementNames[], String values[], String objectType) {
+		for(int i=0; i<elementNames.length; i++) {
+			WebElement field = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id(elementNames[i])));
+			field.clear();
+			field.sendKeys(values[i]);
+		}
+		WebElement submit = wait.until(ExpectedConditions.visibilityOfElementLocated(By.id("save" + objectType)));
+		submit.click();
 	}
 
 }
