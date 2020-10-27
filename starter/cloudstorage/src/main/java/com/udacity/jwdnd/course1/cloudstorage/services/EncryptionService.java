@@ -2,7 +2,6 @@ package com.udacity.jwdnd.course1.cloudstorage.services;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.*;
@@ -28,12 +27,13 @@ public class EncryptionService {
                 | UnsupportedEncodingException | IllegalBlockSizeException | BadPaddingException e) {
             logger.error(e.getMessage());
         }
-
         return Base64.getEncoder().encodeToString(encryptedValue);
     }
 
     public String decryptValue(String data, String key) {
         byte[] decryptedValue = null;
+        System.out.println("Password: " + data);
+        System.out.println("\nKey: " + key);
 
         try {
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");

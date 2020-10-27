@@ -32,11 +32,17 @@ public class FileController {
     public String createNewFile(Authentication authentication, @RequestParam("fileUpload") MultipartFile fileUpload) throws IOException {
 
         if(fileUpload.isEmpty()) {
-            return "redirect:/result?error";
+            return "redirect:/result?errorMessage";
         }
 
-        String name = fileUpload.getOriginalFilename();
+        String fileName = fileUpload.getOriginalFilename();
         Integer userId = this.userService.getUserId(authentication.getName());
+
+        if(fileService.getFileByFilename(userId, fileName) != null) {
+            String errorMessage = "Error: Filename in use.";
+            return "redirect:/result?errorMessage=" + errorMessage;
+        }
+        fileService.addFile(fileUpload, userId);
 
         return "redirect:/result?success";
     }
