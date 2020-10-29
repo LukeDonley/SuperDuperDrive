@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:th="https://www.thymeleaf.org">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+        <link rel="stylesheet" type="text/css" media="all" th:href="@{/css/bootstrap.min.css}">
+
+        <title>Error</title>
+    </head>
+    <body>
+        <div class="container justify-content-left w-100 p-3" >
+            <div id="error-msg" class="alert alert-danger fill-parent">
+                <h2 th:if="${errorCode == '404'}">Error - 404: Page Not Found.</h2>
+                <h2 th:if="${errorCode == '500'}">Error - 500: Internal Server Error.</h2>
+                <h2 th:if="${errorCode == null}">Something Went Wrong!</h2>
+            </div>
+            <div class="btn-group">
+                <a th:if="${loggedIn}" th:href="@{/home}" class="btn btn-primary active">Back to home</a>
+                <a th:unless="${loggedIn}" th:href="@{/login}" class="btn btn-primary active">Login</a>
+            </div>
+        </div>
+    </body>
+</html>

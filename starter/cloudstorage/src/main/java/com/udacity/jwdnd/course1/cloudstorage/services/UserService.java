@@ -39,6 +39,9 @@ public class UserService {
 
     public Integer getUserId(String username) {
         User user = this.getUser(username);
+        if(user == null) {
+            return 0;
+        }
         return user.getUserId();
     }
 }

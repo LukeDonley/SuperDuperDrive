@@ -32,8 +32,6 @@ public class EncryptionService {
 
     public String decryptValue(String data, String key) {
         byte[] decryptedValue = null;
-        System.out.println("Password: " + data);
-        System.out.println("\nKey: " + key);
 
         try {
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");

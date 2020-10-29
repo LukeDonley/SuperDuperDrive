@@ -27,6 +27,9 @@ public class HomeController {
     @RequestMapping("/home")
     public String getHomePage(Model model, Authentication authentication) {
         Integer userId = this.userService.getUserId(authentication.getName());
+        if(userId == 0) {
+            return "redirect:/login";
+        }
         model.addAttribute("files", fileService.getFiles(userId));
         model.addAttribute("notes", noteService.getNotes(userId));
         model.addAttribute("credentials", credentialService.getCredentials(userId));
